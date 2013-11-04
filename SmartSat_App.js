@@ -34,7 +34,7 @@ SmartSat.Entidad = M.Model.create({
 
 }, M.DataProviderRemoteStorage.configure({
 	'Entidad': {
-		url: '/SmartSatServer/',
+		url: 'http://190.105.232.200/restConsatServer/public',
 		read: {
 			url: {
 				all: function(data) {
@@ -72,7 +72,7 @@ SmartSat.Usuario = M.Model.create({
 },M.DataProviderRemoteStorage.configure({
 	'Usuario': {
 		isAsync:true,
-		url: '/SmartSatServer/',
+		url: 'http://190.105.232.200/restConsatServer/public/',
 		read: {
 			url: {
 				all: function(data) {
