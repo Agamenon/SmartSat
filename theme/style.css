@@ -1,0 +1,14 @@
+.imgCenter {
+	display: block;
+	margin: auto;
+}
+
+.map {
+	margin: 2px;
+    width: 100%;
+    min-height: 500px;
+}
+
+.MargginBar{
+	margin: 10px;
+}
