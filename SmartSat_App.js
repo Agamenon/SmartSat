@@ -72,7 +72,7 @@ SmartSat.Usuario = M.Model.create({
 },M.DataProviderRemoteStorage.configure({
 	'Usuario': {
 		isAsync:true,
-		url: 'http://190.105.232.200/restConsatServer/public/',
+		url: 'http://190.105.232.200/restConsatServer/public',
 		read: {
 			url: {
 				all: function(data) {
@@ -85,6 +85,162 @@ SmartSat.Usuario = M.Model.create({
 		}
 	}
 }));
+
+// ==========================================================================
+// The M-Project - Mobile HTML5 Application Framework
+// Generated with: Espresso 
+//
+// Project: SmartSat
+// Controller: EntidadC
+// ==========================================================================
+
+SmartSat.EntidadC = M.Controller.extend({
+
+	/* sample controller property */
+	Entidades: '',
+
+	/*
+	 * Sample function
+	 * To handle the first load of a page.
+	 */
+	init: function(isFirstLoad) {
+		if(isFirstLoad){
+			this.sincroEntidades();
+		}
+	},
+	
+	onSuccess:function(data){
+		M.LoaderView.hide();
+		this.set('Entidades',data);
+		/** Activamos el Paginador **/
+		SmartSat.PaginadorC.initPaginador();
+	},
+	
+	onError:function(error){
+    	M.LoaderView.hide();
+    	M.DialogView.alert({
+    	    title: 'Error',
+    	    message: error.errObj.responseText,
+    	    confirmButtonValue: 'Ok.',
+    	    callbacks: {
+    	        confirm: {
+    	            action: function() {
+    	                return false;
+    	            }
+    	        }
+    	    }
+    	});
+    },
+
+	showMapa:function(id,m_id){
+		var record = [SmartSat.Entidad.recordManager.getRecordForId(m_id)];
+		SmartSat.MapaC.set('entidadesForDisplay',record);
+		this.switchToPage('MapaEntidades');
+	},
+	
+	renderFlota:function(){
+		SmartSat.MapaC.set('entidadesForDisplay',this.Entidades);
+		this.switchToPage('MapaEntidades');
+	},
+	
+	sincroEntidades:function(){
+		M.LoaderView.show('Conectando...');
+		SmartSat
+		.Entidad
+		.find({query:[
+                      {identifier:'Cliente',operator:'=',value:SmartSat.LoginC.get('User')[0].get('cl_nro')}
+                      ],
+			onSuccess:function(data){
+				SmartSat.EntidadC.onSuccess(data);
+			},
+			onError:{
+            	target:SmartSat.EntidadC,
+            	action:'onError'
+            }
+		});
+	},
+	search:function(id,e){
+		var value =String(M.ViewManager.findViewById(id).value);
+		var result = new Array();
+		$.each(SmartSat.Entidad.recordManager.records,function(){
+			if(typeof(this.get('mo_idcliente')) == 'string'){
+				if(this.get('mo_idcliente').indexOf(value) != -1) result.push(this);
+			}
+		});
+		this.set('Entidades',result);
+		/** @todo Cambiar la busqueda en el paginador **/
+		SmartSat.PaginadorC.initPaginador();
+	}
+
+});
+
+// ==========================================================================
+// The M-Project - Mobile HTML5 Application Framework
+// Generated with: Espresso 
+//
+// Project: SmartSat
+// Controller: LoginC
+// ==========================================================================
+
+SmartSat.LoginC = M.Controller.extend({
+
+    /* sample controller property */
+    User: '',
+
+    /*
+    * Sample function
+    * To handle the first load of a page.
+    */
+    init: function(isFirstLoad) {
+        if(isFirstLoad) {
+            /* do something here, when page is loaded the first time. */
+        }
+        /* do something, for any other load. */
+    },
+    
+    validarAcceso:function(e){
+    	var form = M.ViewManager.getView(SmartSat.Login, 'frmLogin');
+		if(form.validate()){
+			var data = form.getFormValues();
+			M.LoaderView.show('Conectando...');
+			SmartSat.Usuario.find({query:[
+    	                                  {identifier:'Nombre',operator:'=',value:data.usuario},
+    	                                  {identifier:'Password',operator:'=',value:data.password}
+    	                                  ],
+    	                                onSuccess:function(data){
+    	                                	SmartSat.LoginC.onSuccess(data);
+    	                                },
+    	                                onError:{
+    	                                	target:SmartSat.LoginC,
+    	                                	action:'onError'
+    	                                }
+										});
+		}
+		form.clearForm();
+    },
+    
+    onSuccess:function(data){
+    	M.LoaderView.hide();
+    	this.set('User',data);
+    	this.switchToPage('ListEntidades');
+    },
+    
+    onError:function(error){
+    	M.LoaderView.hide();
+    	M.DialogView.alert({
+    	    title: 'Error',
+    	    message: error.errObj.responseText,
+    	    confirmButtonValue: 'Ok.',
+    	    callbacks: {
+    	        confirm: {
+    	            action: function() {
+    	                return false;
+    	            }
+    	        }
+    	    }
+    	});
+    }
+});
 
 // ==========================================================================
 // The M-Project - Mobile HTML5 Application Framework
@@ -167,13 +323,13 @@ SmartSat.MapaC = M.Controller.extend({
 // Generated with: Espresso 
 //
 // Project: SmartSat
-// Controller: LoginC
+// Controller: Menu
 // ==========================================================================
 
-SmartSat.LoginC = M.Controller.extend({
+SmartSat.MenuC = M.Controller.extend({
 
     /* sample controller property */
-    User: '',
+    myControllerProperty: '',
 
     /*
     * Sample function
@@ -186,48 +342,40 @@ SmartSat.LoginC = M.Controller.extend({
         /* do something, for any other load. */
     },
     
-    validarAcceso:function(e){
-    	var form = M.ViewManager.getView(SmartSat.Login, 'frmLogin');
-		if(form.validate()){
-			var data = form.getFormValues();
-			M.LoaderView.show('Conectando...');
-			SmartSat.Usuario.find({query:[
-    	                                  {identifier:'Nombre',operator:'=',value:data.usuario},
-    	                                  {identifier:'Password',operator:'=',value:data.password}
-    	                                  ],
-    	                                onSuccess:function(data){
-    	                                	SmartSat.LoginC.onSuccess(data);
-    	                                },
-    	                                onError:{
-    	                                	target:SmartSat.LoginC,
-    	                                	action:'onError'
-    	                                }
-										});
-		}
-		form.clearForm();
-    },
-    
-    onSuccess:function(data){
-    	M.LoaderView.hide();
-    	this.set('User',data);
-    	this.switchToPage('ListEntidades');
-    },
-    
-    onError:function(error){
-    	M.LoaderView.hide();
-    	M.DialogView.alert({
-    	    title: 'Error',
-    	    message: error.errObj.responseText,
-    	    confirmButtonValue: 'Ok.',
-    	    callbacks: {
-    	        confirm: {
-    	            action: function() {
-    	                return false;
-    	            }
-    	        }
-    	    }
-    	});
-    }
+    show:function(){
+    //	this.changeToPage('grfflota');
+   	 M.DialogView.actionSheet({
+           title: 'Menu',
+           cancelButtonValue: 'Cancelar',
+           otherButtonValues: ['Listar Flota', 'Graficar Flota', 'Neo'],
+           otherButtonTags: ['lstflota', 'grfflota', 'neo'],
+           callbacks: {
+               cancel: {
+                   target: this,
+                   action: function(){return false;}
+               },
+               other: {
+                   target: this,
+                   action: 'changeToPage'
+               }
+           }
+       });
+   },
+   
+   changeToPage: function(option){
+	   switch (option) {
+	   case 'lstflota':
+		   	this.switchToPage('ListEntidades');
+		   break;
+	   case 'grfflota':
+		   SmartSat.EntidadC.renderFlota();
+		   break;
+	   default:
+		   return false;
+		   break;
+	   }
+   }
+
 });
 
 // ==========================================================================
@@ -314,150 +462,68 @@ SmartSat.PaginadorC = M.Controller.extend({
 // Generated with: Espresso 
 //
 // Project: SmartSat
-// Controller: Menu
+// View: EntidadSearchBar
 // ==========================================================================
 
-SmartSat.MenuC = M.Controller.extend({
-
-    /* sample controller property */
-    myControllerProperty: '',
-
-    /*
-    * Sample function
-    * To handle the first load of a page.
-    */
-    init: function(isFirstLoad) {
-        if(isFirstLoad) {
-            /* do something here, when page is loaded the first time. */
+SmartSat.EntidadSearchBar = M.SearchBarView.design({
+	cssClass: 'MargginBar',
+	isListViewSearchBar: YES,
+    events: {
+        keyup: {
+            target: SmartSat.EntidadC,
+            action: 'search'
+        },
+        focus:{
+            target: SmartSat.EntidadC,
+            action: 'search'
         }
-        /* do something, for any other load. */
-    },
-    
-    show:function(){
-    	this.changeToPage('grfflota');
-//   	 M.DialogView.actionSheet({
-//           title: 'Menu',
-//           cancelButtonValue: 'Cancelar',
-//           otherButtonValues: ['Listar Flota', 'Graficar Flota', 'Neo'],
-//           otherButtonTags: ['lstflota', 'grfflota', 'neo'],
-//           callbacks: {
-//               cancel: {
-//                   target: this,
-//                   action: function(){return false;}
-//               },
-//               other: {
-//                   target: this,
-//                   action: 'changeToPage'
-//               }
-//           }
-//       });
-   },
-   
-   changeToPage: function(option){
-	   switch (option) {
-	   case 'lstflota':
-		   	this.switchToPage('ListEntidades');
-		   break;
-	   case 'grfflota':
-		   SmartSat.EntidadC.renderFlota();
-		   break;
-	   default:
-		   return false;
-		   break;
-	   }
-   }
-
+    }
 });
+
 
 // ==========================================================================
 // The M-Project - Mobile HTML5 Application Framework
 // Generated with: Espresso 
 //
 // Project: SmartSat
-// Controller: EntidadC
+// View: Head
+// ==========================================================================
+SmartSat.Head =M.ToolbarView.design({
+	childViews : 'lblAppName btnMenu',
+
+	lblAppName : M.LabelView.design({
+		anchorLocation : M.CENTER,
+		value : ''
+	}),
+
+	btnMenu : M.ButtonView.design({
+		anchorLocation : M.LEFT,
+		isIconOnly: NO,
+		value:'Graficar Flota',
+		icon : 'grid',
+        events: {
+            tap: {
+            	target: SmartSat.MenuC,
+            	action:'show'
+            }
+        }
+	})
+});
+
+
+// ==========================================================================
+// The M-Project - Mobile HTML5 Application Framework
+// Generated with: Espresso 
+//
+// Project: SmartSat
+// View: Footer
 // ==========================================================================
 
-SmartSat.EntidadC = M.Controller.extend({
-
-	/* sample controller property */
-	Entidades: '',
-
-	/*
-	 * Sample function
-	 * To handle the first load of a page.
-	 */
-	init: function(isFirstLoad) {
-		if(isFirstLoad){
-			this.sincroEntidades();
-		}
-	},
-	
-	onSuccess:function(data){
-		M.LoaderView.hide();
-		this.set('Entidades',data);
-		/** Activamos el Paginador **/
-		SmartSat.PaginadorC.initPaginador();
-	},
-	
-	onError:function(error){
-    	M.LoaderView.hide();
-    	M.DialogView.alert({
-    	    title: 'Error',
-    	    message: error.errObj.responseText,
-    	    confirmButtonValue: 'Ok.',
-    	    callbacks: {
-    	        confirm: {
-    	            action: function() {
-    	                return false;
-    	            }
-    	        }
-    	    }
-    	});
-    },
-
-	showMapa:function(id,m_id){
-		var record = [SmartSat.Entidad.recordManager.getRecordForId(m_id)];
-		SmartSat.MapaC.set('entidadesForDisplay',record);
-		this.switchToPage('MapaEntidades');
-	},
-	
-	renderFlota:function(){
-		SmartSat.MapaC.set('entidadesForDisplay',this.Entidades);
-		this.switchToPage('MapaEntidades');
-	},
-	
-	sincroEntidades:function(){
-		M.LoaderView.show('Conectando...');
-		SmartSat
-		.Entidad
-		.find({query:[
-                      {identifier:'Cliente',operator:'=',value:SmartSat.LoginC.get('User')[0].get('cl_nro')}
-                      ],
-			onSuccess:function(data){
-				SmartSat.EntidadC.onSuccess(data);
-			},
-			onError:{
-            	target:SmartSat.EntidadC,
-            	action:'onError'
-            }
-		});
-	},
-	search:function(id,e){
-		console.log(id);
-		var value =String(M.ViewManager.findViewById(id).value);
-		console.log(M.ViewManager.findViewById(id));
-		var result = new Array();
-		$.each(SmartSat.Entidad.recordManager.records,function(){
-			if(typeof(this.get('mo_idcliente')) == 'string'){
-				if(this.get('mo_idcliente').indexOf(value) != -1) result.push(this);
-			}
-		});
-		this.set('Entidades',result);
-		/** @todo Cambiar la busqueda en el paginador **/
-		SmartSat.PaginadorC.initPaginador();
-	}
-
+SmartSat.Footer = M.ToolbarView.design({
+        value: '',
+        anchorLocation: M.BOTTOM
 });
+
 
 // ==========================================================================
 // The M-Project - Mobile HTML5 Application Framework
@@ -520,20 +586,6 @@ SmartSat.Login = M.PageView.design({
         anchorLocation: M.BOTTOM
     })
 
-});
-
-
-// ==========================================================================
-// The M-Project - Mobile HTML5 Application Framework
-// Generated with: Espresso 
-//
-// Project: SmartSat
-// View: Footer
-// ==========================================================================
-
-SmartSat.Footer = M.ToolbarView.design({
-        value: '',
-        anchorLocation: M.BOTTOM
 });
 
 
@@ -653,60 +705,6 @@ SmartSat.RowsEntidades = M.ListItemView.design({
     	}
     })
 
-});
-
-
-// ==========================================================================
-// The M-Project - Mobile HTML5 Application Framework
-// Generated with: Espresso 
-//
-// Project: SmartSat
-// View: EntidadSearchBar
-// ==========================================================================
-
-SmartSat.EntidadSearchBar = M.SearchBarView.design({
-	cssClass: 'MargginBar',
-	isListViewSearchBar: YES,
-    events: {
-        keyup: {
-            target: SmartSat.EntidadC,
-            action: 'search'
-        },
-        focus:{
-            target: SmartSat.EntidadC,
-            action: 'search'
-        }
-    }
-});
-
-
-// ==========================================================================
-// The M-Project - Mobile HTML5 Application Framework
-// Generated with: Espresso 
-//
-// Project: SmartSat
-// View: Head
-// ==========================================================================
-SmartSat.Head =M.ToolbarView.design({
-	childViews : 'lblAppName btnMenu',
-
-	lblAppName : M.LabelView.design({
-		anchorLocation : M.CENTER,
-		value : 'SmartSat'
-	}),
-
-	btnMenu : M.ButtonView.design({
-		anchorLocation : M.LEFT,
-		isIconOnly: NO,
-		value:'Graficar Flota',
-		icon : 'grid',
-        events: {
-            click: {
-            	target: SmartSat.MenuC,
-            	action:'show'
-            }
-        }
-	})
 });
 
 
