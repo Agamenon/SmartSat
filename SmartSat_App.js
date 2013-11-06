@@ -106,6 +106,11 @@ SmartSat.EntidadC = M.Controller.extend({
 	init: function(isFirstLoad) {
 		if(isFirstLoad){
 			this.sincroEntidades();
+			/** Registrar el Evento de Borrado del Search **/
+			var that = this;
+			$('a.ui-input-clear').click(function(){
+				that.clearList();
+			});
 		}
 	},
 	
@@ -142,7 +147,6 @@ SmartSat.EntidadC = M.Controller.extend({
 		SmartSat.MapaC.set('entidadesForDisplay',this.Entidades);
 		this.switchToPage('MapaEntidades');
 	},
-	
 	sincroEntidades:function(){
 		M.LoaderView.show('Conectando...');
 		SmartSat
@@ -170,8 +174,11 @@ SmartSat.EntidadC = M.Controller.extend({
 		this.set('Entidades',result);
 		/** @todo Cambiar la busqueda en el paginador **/
 		SmartSat.PaginadorC.initPaginador();
+	},
+	clearList:function(){
+		this.set('Entidades',SmartSat.Entidad.recordManager.records);
+		SmartSat.PaginadorC.initPaginador();
 	}
-
 });
 
 // ==========================================================================
@@ -457,6 +464,9 @@ SmartSat.PaginadorC = M.Controller.extend({
 
 });
 
+/**
+ * 
+ */
 // ==========================================================================
 // The M-Project - Mobile HTML5 Application Framework
 // Generated with: Espresso 
@@ -472,12 +482,22 @@ SmartSat.EntidadSearchBar = M.SearchBarView.design({
         keyup: {
             target: SmartSat.EntidadC,
             action: 'search'
-        },
-        focus:{
-            target: SmartSat.EntidadC,
-            action: 'search'
         }
     }
+});
+
+
+// ==========================================================================
+// The M-Project - Mobile HTML5 Application Framework
+// Generated with: Espresso 
+//
+// Project: SmartSat
+// View: Footer
+// ==========================================================================
+
+SmartSat.Footer = M.ToolbarView.design({
+        value: '',
+        anchorLocation: M.BOTTOM
 });
 
 
@@ -499,7 +519,7 @@ SmartSat.Head =M.ToolbarView.design({
 	btnMenu : M.ButtonView.design({
 		anchorLocation : M.LEFT,
 		isIconOnly: NO,
-		value:'Graficar Flota',
+		value:'Menu',
 		icon : 'grid',
         events: {
             tap: {
@@ -508,20 +528,6 @@ SmartSat.Head =M.ToolbarView.design({
             }
         }
 	})
-});
-
-
-// ==========================================================================
-// The M-Project - Mobile HTML5 Application Framework
-// Generated with: Espresso 
-//
-// Project: SmartSat
-// View: Footer
-// ==========================================================================
-
-SmartSat.Footer = M.ToolbarView.design({
-        value: '',
-        anchorLocation: M.BOTTOM
 });
 
 
@@ -739,7 +745,7 @@ SmartSat.ListEntidades = M.PageView.design({
         gridEntidades: M.ListView.design({
     		  listItemTemplateView: SmartSat.RowsEntidades,
       		  hasSearchBar: YES,
-      		  isInset: YES,
+      		  isInset: NO,
       		  usesDefaultSearchBehaviour:NO,
       		  searchBar: SmartSat.EntidadSearchBar,
     		  contentBinding: {
@@ -752,6 +758,7 @@ SmartSat.ListEntidades = M.PageView.design({
     footer: M.ToolbarView.design({
     	childViews: 'btnPagePrev textPage btnPageNext',
     	anchorLocation: M.BOTTOM,
+    	isFixed: YES,
     	
     	btnPagePrev:M.ButtonView.design({
     		anchorLocation : M.LEFT,
